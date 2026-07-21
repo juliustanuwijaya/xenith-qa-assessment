@@ -1,5 +1,5 @@
 {
-  "name": "automation-project",
+  "name": "xen-assessment-project",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,7 +8,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@faker-js/faker": "^10.5.0",
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.1"
+  },
+  "imports": {
+    "#utils/*": "./utils/*.js"
   }
 }
