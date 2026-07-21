@@ -19,7 +19,7 @@ test('register new user', async ({ page }) => {
   // Expect Page to open registration page and fill in the form
   const firstname = faker.person.firstName();
   const lastname = faker.person.lastName();
-  const username = faker.internet.username();
+  const username = firstname+'_'+lastname;
   const password = 'T3st@123';
 
   await page.locator('#firstname').fill(firstname);
@@ -31,14 +31,22 @@ test('register new user', async ({ page }) => {
   await expect(page.locator('#firstname')).toHaveValue(firstname);
   await expect(page.locator('#lastname')).toHaveValue(lastname);
   await expect(page.locator('#userName')).toHaveValue(username);
-  // await page.click('#register');
+
+  // create a dialog listener before the register is clicked
+  let dialogMessage = '';
+    page.once('dialog', async (dialog) => {
+      dialogMessage = dialog.message();
+      await dialog.accept();
+    });
+    await page.locator('#register').click();
+
+    await page.screenshot({ path: 'screenshot.png' });
+    await expect.poll(() => dialogMessage).toContain('User Registered Successfully');
+
 
   // Popup handler after registration
   // const popupPromise = page.waitForEvent('popup');
   // const popup = await popupPromise;
   // await expect(popup.getByLabel('User Registered Successfully.'));
   // await expect(popup.getByRole('button', { name: 'OK' }).click());
-
-  // await expect(page.locator('register-wrapper'));
-
 });
