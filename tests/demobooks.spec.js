@@ -2,6 +2,7 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
 import { blockAds } from '#utils/adBlocker';
+import { generateTestUser } from '#utils/testData';
 
 test('register new user', async ({ page }) => {
   await blockAds(page);
@@ -13,12 +14,6 @@ test('register new user', async ({ page }) => {
   await page.locator('#login').click();
   await expect(page).toHaveURL(/.*login/);
   await expect(page.locator('.login-wrapper')).toBeVisible();
-
-  page.on('request', (req) => {
-    if (req.resourceType() === 'script' || req.url().includes('ad')) {
-      console.log('Loaded:', req.url());
-    }
-  });
 
   // Navigate to registration
   await page.locator('#newUser').click();
@@ -35,19 +30,19 @@ test('register new user', async ({ page }) => {
   // background script interferes with focus/blur on whichever field is
   // interacted with first, clearing its value. This throwaway click
   // "absorbs" that interference before we do the real fill.
-  page.waitForTimeout(1000);
+  await page.waitForLoadState('networkidle');
   await page.locator('#firstname').click();
 
-  await page.locator('#firstname').pressSequentially(firstname, { timeout: 500 });
+  await page.locator('#firstname').fill(firstname);
   await expect(page.locator('#firstname')).toHaveValue(firstname);
 
-  await page.locator('#lastname').pressSequentially(lastname, { timeout: 500 });
+  await page.locator('#lastname').fill(lastname);
   await expect(page.locator('#lastname')).toHaveValue(lastname);
 
-  await page.locator('#userName').pressSequentially(userName, { timeout: 500 });
+  await page.locator('#userName').fill(userName);
   await expect(page.locator('#userName')).toHaveValue(userName);
 
-  await page.locator('#password').pressSequentially(password, { timeout: 500 });
+  await page.locator('#password').fill(password);
   await expect(page.locator('#password')).toHaveValue(password);
 
   // create a dialog listener before the register is clicked
@@ -57,15 +52,29 @@ test('register new user', async ({ page }) => {
     await dialog.accept();
   });
   await page.locator('#register').click();
+  await expect.poll(() => dialogMessage).toContain('User Registered Successfully');
 
-  //await page.screenshot({ path: 'screenshot.png' });
-  await page.waitForTimeout(10000)
-  //await expect.poll(() => dialogMessage).toContain('User Registered Successfully');
+  await page.locator('#gotologin').click();
+  await expect(page).toHaveURL(/.*login/);
+  await expect(page.locator('.login-wrapper')).toBeVisible();
 
+  // fill in the login credentials
+  await page.locator('#userName').fill(userName);
+  await expect(page.locator('#userName')).toHaveValue(userName);
 
-  // Popup handler after registration
-  // const popupPromise = page.waitForEvent('popup');
-  // const popup = await popupPromise;
-  // await expect(popup.getByLabel('User Registered Successfully.'));
-  // await expect(popup.getByRole('button', { name: 'OK' }).click());
+  await page.locator('#password').fill(password);
+  await expect(page.locator('#password')).toHaveValue(password);
+
+  await page.locator('#login').click();
+  await expect(page).toHaveURL(/.*profile/);
+  await expect(page.locator('.profile-wrapper')).toBeVisible();
+  await expect(page.locator('#userName-value')).toContainText(userName);
+
+  // Logout from the account
+  await page.getByRole('button', { name: "Logout" }).click();
+  await expect(page).toHaveURL(/.*login/);
+  await expect(page.locator('.login-wrapper')).toBeVisible();
+
 });
+
+
