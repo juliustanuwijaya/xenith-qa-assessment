@@ -13,6 +13,7 @@
     "@types/node": "^26.1.1"
   },
   "imports": {
-    "#utils/*": "./utils/*.js"
+    "#utils/*": "./utils/*.js",
+    "#pages/*": "./pages/*.js"
   }
 }
